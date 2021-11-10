@@ -1,5 +1,9 @@
 ### Hi there 👋
+<<<<<<< HEAD
 ksdkjxcvkv
+=======
+ksdjf
+>>>>>>> newfilw
 <!--
 **Harikrishna1111/Harikrishna1111** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
