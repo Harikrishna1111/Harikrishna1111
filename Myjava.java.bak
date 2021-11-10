@@ -1,0 +1,43 @@
+import java.sql.*;
+import java.util.*;
+class Myjava
+{
+	public static void main(String[] args)throws Exception 
+	{
+		Class.forName("oracle.jdbc.OracleDriver");
+		Connection con=DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:XE","system","dinesh100");
+        String sql_Query="insert into emp values(?,?,?,?)";
+		PreparedStatement pst=con.prepareStatement(sql_Query);
+		Scanner s=new Scanner(System.in);
+		while(true)
+		{
+		System.out.println("Enter the employee no:");
+		int eNo=s.nextInt();
+        System.out.println("Enter the employee name:");
+		String eName=s.next();
+		System.out.println("Enter the employee sal:");
+		int esal=s.nextInt();
+		System.out.println("Enter the employee add:");
+		String eadd=s.next();
+		pst.setInt(1,eNo);
+		pst.setString(2,eName);
+		pst.setInt(3,esal);
+		pst.setString(4,eadd);
+		pst.executeUpdate();
+		System.out.println("Records are sucessfully updated:");
+		System.out.println("Do you want to updated another record[yes/no]:");
+		String option=s.next();
+		if(option.equalsIgnoreCase("no"))
+			{
+			//break;
+			System.out.println(" No Records are updated:");
+			}
+		}
+		
+	
+			
+		con.close();
+		
+		
+	}
+}
