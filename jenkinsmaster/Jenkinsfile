@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins credential ID
-        IMAGE_NAME = 'yourdockerhubusername/java-docker-app'
+        IMAGE_NAME = 'harikrishna941/App.java'
     }
 
     stages {
