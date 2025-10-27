@@ -1,5 +1,7 @@
+package com.example;
+
 public class App {
     public static void main(String[] args) {
-        System.out.println("Hello from Java running in Docker via Jenkins!");
+        System.out.println("Hello, Jenkins CI!");
     }
 }
