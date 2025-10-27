@@ -1,65 +1,46 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.9.9-eclipse-temurin-17'
-            args '-v /root/.m2:/root/.m2'
-        }
-    }
+    agent any
 
     environment {
-        APP_NAME = "my-java-app"
-        DOCKER_IMAGE = "mydockerhubuser/my-java-app"
-        DOCKER_TAG = "latest"
-        // Jenkins credentials ID for Docker registry
-        DOCKER_CREDENTIALS = 'dockerhub-credentials'
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins credential ID
+        IMAGE_NAME = 'yourdockerhubusername/java-docker-app'
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build') {
-            steps {
-                sh 'mvn clean package -DskipTests'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
-                }
-            }
-        }
-
         stage('Build Docker Image') {
-            agent { label 'docker' } // Optional: run this stage on a node with Docker installed
             steps {
                 script {
-                    sh """
-                        docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
-                    """
+                    echo "Building Docker image..."
+                    sh 'docker build -t $IMAGE_NAME:latest .'
                 }
             }
         }
 
-        stage('Push Docker Image') {
-            agent { label 'docker' }
+        stage('Test Container') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh """
-                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                            docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                            docker logout
-                        """
-                    }
+                    echo "Running container for test..."
+                    sh 'docker run --rm $IMAGE_NAME:latest'
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    echo "Pushing Docker image to Docker Hub..."
+                    sh '''
+                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                        docker push $IMAGE_NAME:latest
+                        docker logout
+                    '''
                 }
             }
         }
@@ -67,11 +48,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and Docker push completed for ${APP_NAME}"
+            echo "✅ Build and push completed successfully!"
         }
         failure {
-            echo "❌ Pipeline failed for ${APP_NAME}"
+            echo "❌ Build or push failed."
         }
     }
 }
-
