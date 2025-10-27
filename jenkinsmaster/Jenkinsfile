@@ -2,43 +2,38 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins credential ID
         IMAGE_NAME = 'harikrishna941/java-ci-app'
+        DOCKERHUB_CREDS = 'dockerhub-creds' // Jenkins credentials ID
     }
 
     stages {
         stage('Checkout') {
-    steps {
-        checkout scm
-    }
-}
-
-        stage('Build Docker Image') {
             steps {
-                script {
-                    echo "Building Docker image..."
-                    sh 'docker build -t $IMAGE_NAME:latest .'
-                }
+                echo 'Checking out source code...'
+                checkout scm
             }
         }
 
-        stage('Test Container') {
+        stage('Build Java Application') {
             steps {
-                script {
-                    echo "Running container for test..."
-                    sh 'docker run --rm $IMAGE_NAME:latest'
-                }
+                echo 'Building Java application with Maven...'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Docker Build & Push') {
             steps {
-                script {
-                    echo "Pushing Docker image to Docker Hub..."
+                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
-                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                        docker push $IMAGE_NAME:latest
-                        docker logout
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    
+                    # Build Docker image
+                    docker build -t ${IMAGE_NAME}:latest .
+                    
+                    # Push Docker image to Docker Hub
+                    docker push ${IMAGE_NAME}:latest
+                    
+                    docker logout
                     '''
                 }
             }
@@ -47,10 +42,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and push completed successfully!"
+            echo 'Pipeline completed successfully!'
         }
         failure {
-            echo "❌ Build or push failed."
+            echo 'Pipeline failed.'
         }
     }
 }
