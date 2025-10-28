@@ -14,14 +14,14 @@ pipeline {
             }
         }
 
-        stage('Build Java Application') {
+        /*stage('Build Java Application') {
             steps {
                 dir('java-ci-app') { 
                 echo 'Building Java application with Maven...'
                 sh 'mvn clean package -DskipTests'
             }
             }
-        }
+        }*/
 
         stage('Docker Build & Push') {
             steps {
